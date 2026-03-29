@@ -2,9 +2,11 @@ global:
   scrape_interval: 5s
 scrape_configs:
   - job_name: "generator"
-    metrics_path: "/metrics"
     static_configs:
-      - targets: ["host.docker.internal:2112"]
+      - targets: ["data-generator:2112"]
+  - job_name: "producer"
+    static_configs:
+      - targets: ["producer:2113"]
   - job_name: "consumer"
     static_configs:
-      - targets: ["host.docker.internal:2113"]
+      - targets: ["consumer:2114"]

@@ -9,14 +9,18 @@ import (
 	database "shared/db"
 	"shared/enum"
 	"shared/kafka"
+	"shared/metrics"
 
 	util "shared/utils"
 
 	"github.com/IBM/sarama"
-	"github.com/joho/godotenv"
 )
 
 func consume(partitionConsumer sarama.PartitionConsumer, sqldb *sql.DB) error {
+	metrics.StartMetricsServer("2114")
+	var msgConsumed = metrics.NewCounter("consumer_messages_consumed_total", "Total messages consumed")
+	var msgFailed = metrics.NewCounter("consumer_messages_failed_total", "Total messages failed")
+
 	signals := util.GetSignalChannel()
 	defer sqldb.Close()
 	for {
@@ -25,14 +29,17 @@ func consume(partitionConsumer sarama.PartitionConsumer, sqldb *sql.DB) error {
 			var data enum.Data
 			if err := json.Unmarshal(msg.Value, &data); err != nil {
 				log.Printf("Error unmarshaling message: %v", err)
+				msgFailed.Inc()
 				continue
 			}
 
 			// Process your data here
 			db.Insert(sqldb, data)
+			msgConsumed.Inc()
 
 		case err := <-partitionConsumer.Errors():
 			log.Printf("Error: %v", err)
+			msgFailed.Inc()
 
 		case <-signals:
 			log.Println("Shutting down consumer...")
@@ -42,12 +49,6 @@ func consume(partitionConsumer sarama.PartitionConsumer, sqldb *sql.DB) error {
 }
 
 func main() {
-
-	err := godotenv.Load("../../.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	db := database.ConnectDB()
 	defer database.DeleteTable(db)
 

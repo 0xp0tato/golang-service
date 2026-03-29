@@ -8,8 +8,6 @@ import (
 	"shared/enum"
 
 	_ "github.com/lib/pq"
-
-	"github.com/joho/godotenv"
 )
 
 func createTable(db *sql.DB) {
@@ -27,11 +25,6 @@ func DeleteTable(db *sql.DB) {
 }
 
 func ConnectDB() *sql.DB {
-	err := godotenv.Load("../../.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	pghost := os.Getenv("POSTGRES_HOST")
 	pgport := os.Getenv("POSTGRES_PORT")
 	pguser := os.Getenv("POSTGRES_USER")

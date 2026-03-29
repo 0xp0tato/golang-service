@@ -17,7 +17,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-var msgProduced = metrics.NewCounter("messages_produced_total", "Total messages produced")
+var msgProduced = metrics.NewCounter("data_generator_messages_produced_total", "Total messages produced")
 
 func WsHandler(w http.ResponseWriter, r *http.Request) {
 	// Upgrade the HTTP connection to a WebSocket connection
